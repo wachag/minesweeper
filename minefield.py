@@ -32,7 +32,7 @@ def generatestate(gamestate, guess):
     neighbours = 0
     x = guess[0]
     y = guess[1]
-    newstate = copy.copy(gamestate)
+    newstate = copy.deepcopy(gamestate)
     for i in range(-1, 2):
         for j in range(-1, 2):
             if ([x + i, y + j] in gamestate[1]):
@@ -66,11 +66,11 @@ for game in range(1,1000):
     if startepsilon > 0.1:
         startepsilon -= (1 / game)
     gamma = 0.9
-    epochs = 10000
+    epochs = 1000
     originalstate = generateminefield(SIZE, NMINES)
     iter=0
     for i in range(1, epochs):
-        gamestate=copy.copy(originalstate)
+        gamestate=copy.deepcopy(originalstate)
         status = 1
         print("Teaching ",i)
         iter=0
