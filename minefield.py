@@ -17,13 +17,13 @@ def generateminefield(N, Nmines):
 def generateguess(N):
     return [random.randrange(1, N), random.randrange(1, N)]
 
-def generatescore(gamestate, guess):
-    if guess in gamestate[1]:
-        return (True, -(gamestate[0].size * gamestate[0].size))
+def generatescore(gamestate, iter, guess):
+    if guess in gamestate[1]: # mine
+        return (True, -iter*(gamestate[0].size * gamestate[0].size))
     numcovered = numpy.count_nonzero(gamestate[0] + 1)
     if gamestate[0][guess[0]][guess[1]] != -1:
-        return (False, -numcovered)  # negative reward for guessing the known
-    return (False, numcovered)
+        return (False, -iter*iter*numcovered*numcovered)  # negative reward for guessing the known
+    return (False, iter*iter*numcovered)  # positive reward for courage
 
 
 def generatestate(gamestate, guess):
@@ -40,9 +40,6 @@ def generatestate(gamestate, guess):
     return newstate
     
 plt.ion()    
-
-
-
 
 model = Sequential([
     Dense(SIZE*int(numpy.sqrt(SIZE)), input_dim=SIZE * SIZE),
@@ -75,7 +72,7 @@ for game in range(1,100):
     epsilon=startepsilon
     if startepsilon > 0.1:
         startepsilon -= (1 / game)
-    gamma = 0.9
+    gamma = 0.5
     epochs = 1000
     originalstate = generateminefield(SIZE, NMINES)
     iter=0
@@ -85,13 +82,15 @@ for game in range(1,100):
         print("Teaching ",i)
         iter=0
         while status == 1:
+            if i % 10 == 0:
+                model.save("minefield"+str(game)+"_"+str(i)+".h5")
             qval = model.predict(gamestate[0].reshape(1, SIZE * SIZE))
             if (random.random() < epsilon):
                 guess = generateguess(SIZE)
             else:
                 a = int(numpy.argmax(qval[0]))
                 guess = [ a % SIZE, int(a / SIZE)]
-            (died, reward) = generatescore(gamestate, guess)
+            (died, reward) = generatescore(gamestate, iter, guess)
             if not died:
                 newstate = generatestate(gamestate, guess)
             else:
