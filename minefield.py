@@ -94,7 +94,13 @@ if __name__ == "__main__":
                 if (random.random() < epsilon):
                     guess = generateguess(SIZE)
                 else:
-                    a = int(numpy.argmax(qval[0]))
+                    qvalcopy=copy.deepcopy(qval[0])
+                    minimum=numpy.min(qvalcopy)
+                    for xc in range(1,SIZE):
+                      for yc in range(1,SIZE):
+                        if(gamestate[0][xc][yc]!=-1):
+                          qvalcopy[yc*SIZE+xc]=minimum
+                    a = int(numpy.argmax(qvalcopy[0]))
                     guess = [ a % SIZE, int(a / SIZE)]
                 (died, reward) = generatescore(gamestate, iter, guess)
                 if not died:
