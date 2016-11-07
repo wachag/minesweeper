@@ -1,4 +1,4 @@
-﻿﻿import sys
+﻿import sys
 import numpy
 import random
 import copy
@@ -107,9 +107,9 @@ if __name__ == "__main__":
     model = Sequential([
         Dense(SIZE * int(numpy.sqrt(SIZE)), input_dim=SIZE * SIZE),
         Activation('relu'),
-        Dense(SIZE * SIZE),
+        Dense(SIZE*SIZE * SIZE),
         Activation('softmax'),
-        Dense(SIZE),
+        Dense(SIZE*SIZE),
         Activation('softmax'),
         Dense(SIZE * SIZE),  # outputs: Coordinates
         Activation('softmax'),
