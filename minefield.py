@@ -1,4 +1,5 @@
-﻿import sys
+#import Tkinter as Tk
+import sys
 import numpy
 import random
 import copy
@@ -8,8 +9,8 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 import matplotlib.pyplot as plt
 
-SIZE = 8
-NMINES = 10
+SIZE = 4
+NMINES = 4
 
 
 def index(x, y):
@@ -105,17 +106,23 @@ if __name__ == "__main__":
     plt.ion()
 
     model = Sequential([
-        Dense(SIZE * int(numpy.sqrt(SIZE)), input_dim=SIZE * SIZE),
+        Dense(SIZE * SIZE*9, input_dim=SIZE * SIZE, init='lecun_uniform'),
         Activation('relu'),
-        Dense(SIZE*SIZE * SIZE),
-        Activation('softmax'),
-        Dense(SIZE*SIZE),
-        Activation('softmax'),
-        Dense(SIZE * SIZE),  # outputs: Coordinates
-        Activation('softmax'),
+        Dense(SIZE* SIZE*9,init='lecun_uniform'),
+        Activation('relu'),
+    #    Dense(SIZE*SIZE*9,init='lecun_uniform'),
+    #    Activation('relu'),
+    #    Dense(SIZE*SIZE*9,init='lecun_uniform'),
+    #    Activation('relu'),
+    #    Dense(SIZE*SIZE*9,init='lecun_uniform'),
+    #    Activation('relu'),
+        Dense(SIZE*SIZE*9,init='lecun_uniform'),
+        Activation('relu'),
+        Dense(SIZE * SIZE,init='lecun_uniform'),  # outputs: Coordinates
+        Activation('linear'),
     ])
 
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
+    model.compile(optimizer='rmsprop', loss='mse')
     if len(sys.argv) > 1:
         print(sys.argv[1])
         model.load_weights(sys.argv[1])
@@ -134,7 +141,7 @@ if __name__ == "__main__":
     ax3 = fig2.add_subplot(121)
     ax4 = fig2.add_subplot(122)
 
-    games = 100
+    games = 1
     for game in range(0, games):
         ax4.clear()
         print("Playing game ", game)
@@ -142,8 +149,8 @@ if __name__ == "__main__":
         epsilon = startepsilon
         if startepsilon > 0.1:
             startepsilon -= (1 / (games))
-        gamma = 0.7
-        epochs = 100
+        gamma = 0.9
+        epochs = 1000
         originalstate = generateminefield(SIZE, NMINES)
         sol=solveboard(originalstate[0], originalstate[1])
         plotMat(ax4,sol.reshape(SIZE, SIZE))
@@ -155,8 +162,8 @@ if __name__ == "__main__":
             print("Teaching ", i)
             iter = 0
             while True:
-                qval = model.predict(gamestate[0].reshape(1, SIZE * SIZE))
 
+                qval = model.predict(gamestate[0].reshape(1, SIZE * SIZE))
                 if (random.random() < epsilon):
                     guess = generateguess(gamestate[0], SIZE)
                 else:
@@ -168,12 +175,9 @@ if __name__ == "__main__":
                     guess = int(numpy.argmax(qvalcopy))
 
                 (died, reward) = generatescore(gamestate, iter, guess)
-                if not died:
-                    newstate = generatestate(gamestate, guess)
-                    newq = model.predict(newstate[0].reshape(1, SIZE * SIZE))
-                else:
-                    newstate = copy.deepcopy(gamestate)
-                    newq = qval  # TODO?
+
+                newstate = generatestate(gamestate, guess)
+                newq = model.predict(newstate[0].reshape(1, SIZE * SIZE))
 
                 update = reward + gamma * numpy.max(newq)
                 y = numpy.zeros((1, SIZE * SIZE))
@@ -208,5 +212,7 @@ if __name__ == "__main__":
                         plt.pause(1e-6)  # unnecessary, but useful
                     break
                 iter = iter + 1
-            if epsilon > 0.1:
+            if epsilon > (1/epochs):
                 epsilon -= (1 / epochs)
+    plt.show()
+#    Tk.mainloop()
